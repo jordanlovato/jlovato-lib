@@ -195,6 +195,6 @@ abstract class Model {
         return $this->get('table');
     }
 
-    abstract function validate();
-    abstract function create_table();
+    abstract protected function validate();
+    abstract protected function create_table();
 }
