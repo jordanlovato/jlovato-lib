@@ -22,7 +22,7 @@ class FormBuilder {
     );
 
     protected $flags = array();
-    protected $name_list = array();
+    protected $names_list = array();
 
     public function __construct($xml)
     {
@@ -73,11 +73,18 @@ class FormBuilder {
         if (empty($field['name'])) {
             $field_name = "FB_field-".$index;
             $this->fields[$index]['name'] = $field_name;
-            $this->name_list[$index] = $field_name;
+        } else {
+            $field_name = $field['name'];
         }
+        $this->names_list[$index] = strval($field_name);
 
         if (empty($field['id'])) {
-            $id = "FB_field-".$index;
+            if (!empty($field['name'])) {
+                $id = $field['name'];
+            } else {
+                $id = "FB_field-".$index;
+            }
+
             $this->fields[$index]['id'] = $id;
         }
 
@@ -128,6 +135,11 @@ class FormBuilder {
     private function flag($i, $type)
     {
         $this->flags[$i] = $type;
+    }
+
+    public function get_names_list()
+    {
+        return $this->names_list;
     }
 
     public static function get_field_attr_list()
