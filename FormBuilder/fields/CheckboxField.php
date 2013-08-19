@@ -1,8 +1,8 @@
 <?php
 
-class TextField extends Field
-{
-    const FIELD_NAME = 'text';
+class CheckboxField extends Field {
+
+    const FIELD_NAME = 'checkbox';
 
     public function render_field()
     {
@@ -10,7 +10,7 @@ class TextField extends Field
 
             <?php $this->do_before_decorators(); ?>
 
-            <input type="text" <?php $this->do_attrs(); ?> />
+            <input type="checkbox" <?php $this->do_attrs(); ?> />
 
             <?php $this->do_after_decorators(); ?>
 

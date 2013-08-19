@@ -12,8 +12,6 @@ abstract class Field implements IField {
 
     private static $field_count = 0;
 
-    abstract public function get_field_html();
-
     abstract public function render_field();
 
     abstract public function get_field_type();
@@ -36,6 +34,16 @@ abstract class Field implements IField {
         }
 
         self::$field_count++;
+    }
+
+    public function get_field_html()
+    {
+        ob_flush();
+        ob_start();
+        $this->render_field();
+        $return = ob_get_clean();
+        ob_flush();
+        return $return;
     }
 
     public function assign_decorator(IDecorator $dec)
@@ -75,6 +83,23 @@ abstract class Field implements IField {
             if ($decorator->get_position() == IDecorator::POSITION_AFTER)
                 $decorator->do_decorator();
         }
+    }
+
+    public function remove_attr(IAttr $attr, $return = false)
+    {
+        foreach ($this->get_attrs() as $i => $a) {
+            if ($attr == $a) {
+                $return_attr = ($return) ? $this->attrs[$i]: null ;
+
+                unset($this->attrs[$i]);
+
+                if ($return) return $return_attr;
+            }
+        }
+
+        throw new InvalidArgumentException(
+            "Could not find attr with name: " . $attr->get_attr_name() . " and value: " . $attr->get_attr_value()
+        );
     }
 
     private function set_new_attr(IAttr $attr)
@@ -125,20 +150,28 @@ abstract class Field implements IField {
         return $attrs;
     }
 
-    public function do_attrs()
+    public function do_attr($attr_name) {
+        foreach ($this->get_attrs() as $attr) {
+            if ($attr->get_attr_name() == $attr_name) {
+                $attr->do_attr();
+            }
+        }
+    }
+
+    public function do_attrs($exceptions = array())
     {
         foreach ($this->attrs as $attr) {
-            if (!is_a($attr, 'LabelAttr'))
+            if (!in_array($attr->get_attr_name(), $exceptions)) {
                 $attr->do_attr();
+            }
         }
     }
 
     public function do_label()
     {
-        foreach ($this->attrs as $attr) {
-            $label = $this->get_attr('label');
-            $label->do_attr();
-        }
+        $label = $this->get_decorators();
+
+        $label->do_attr();
     }
 
     public function get_field_key() {

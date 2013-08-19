@@ -45,6 +45,7 @@ final class FieldList implements Iterator, Singleton {
      * Dependency array for JS
      */
     private static $dep_array = null;
+
     /**
      * Singleton Pattern
      */
@@ -162,6 +163,65 @@ final class FieldList implements Iterator, Singleton {
         return $sub_fields;
     }
 
+    public static function remove_field_by_index($index, $return_field = false)
+    {
+        if (isset(self::$fields[$index])) {
+            $field = null;
+
+            if ($return_field) $field = self::$fields[$index];
+
+            unset(self::$fields[$index]);
+
+            if ($return_field) return $field;
+            else return true;
+        } else {
+            throw new InvalidArgumentException('No field found at index: ' . $index);
+        }
+    }
+
+    public static function remove_field_by_field_key($field_key, $return_field = false)
+    {
+        try {
+            $index = self::get_field_by_field_key($field_key, 'index');
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        self::remove_field_by_index($index, $return_field);
+    }
+
+    public static function remove_attr($field, IAttr $attr)
+    {
+        try {
+            $field->remove_attr($attr);
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+    }
+
+    public static function remove_decorator(IField $field, IDecorator $dec)
+    {
+        // Because decorators are bridged with fields,
+        // The way we remove them is to first compare
+        // our $dec arg with all decorators in the field
+        // and then, if it exists, use THAT object to de-assign
+        // it from the field because the decorator define the
+        // de-assignment algorithm.
+        $field_decorators = $field->get_decorators();
+        $field_key = $field->get_field_key();
+
+        foreach ($field_decorators as $d) {
+            if ($d == $dec) {
+                try {
+                    $d->remove_decorator($field_key);
+                } catch(Exception $e) {
+                    throw $e;
+                }
+            }
+        }
+    }
+
     /**
      * @param IField $new_field
      * @param $index
@@ -245,8 +305,6 @@ final class FieldList implements Iterator, Singleton {
                     unset(self::$fields[self::get_cached_index()]);
                 }
             }
-
-
 
             self::add_field($new_field, !$preserve_meta);
         } else {
@@ -404,6 +462,8 @@ final class FieldList implements Iterator, Singleton {
                 return self::$fields[$return_index]['object'];
             } else if ($return_type == 'array') {
                 return self::$fields[$return_index];
+            } else if ($return_type == 'field_key') {
+                return self::$field[$return_index]['object']->get_field_key();
             } else {
                 return self::$fields[$return_index]['object'];
             }
@@ -430,6 +490,8 @@ final class FieldList implements Iterator, Singleton {
                     return $field_vars['object'];
                 } else if ($return_type == "array") {
                     return $field_vars;
+                } else if ($return_type == "index") {
+                    return self::get_cached_index();
                 } else {
                     return $field_vars['object'];
                 }

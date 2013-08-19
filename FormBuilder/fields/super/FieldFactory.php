@@ -58,7 +58,10 @@ final class FieldFactory implements Singleton {
             case 'ta':
                 return new TextareaField($field_key, $init_attrs);
                 break;
-
+            case 'checkbox':
+            case 'cb':
+                return new CheckboxField($field_key, $init_attrs);
+                break;
         }
     }
 
@@ -73,7 +76,8 @@ final class FieldFactory implements Singleton {
         $indicies = FieldList::get_field_indicies_by_attr_obj($query_attr);
 
         foreach ($indicies as $index) {
-            FieldList::update_field_by_index(self::create_field($new_field_type), $index, true);
+            $field_key = FieldList::get_field_by_index($index, 'field_key');
+            FieldList::update_field_by_index(self::create_field($field_key, $new_field_type), $index, true);
         }
     }
 
@@ -86,7 +90,7 @@ final class FieldFactory implements Singleton {
     public function change_field_type_by_field_key($field_key, $new_field_type)
     {
         $index = FieldList::get_field_by_field_key($field_key);
-        FieldList::update_field_by_index(self::create_field($new_field_type), $index, true);
+        FieldList::update_field_by_index(self::create_field($field_key, $new_field_type), $index, true);
     }
 
     /**

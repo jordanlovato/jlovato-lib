@@ -1,22 +1,24 @@
 <?php
 
-include "Field.php";
-
 class TextareaField extends Field
 {
-
-    public function get_field_html()
-    {
-        // TODO: Implement get_field_html() method.
-    }
+    const FIELD_NAME = 'textarea';
 
     public function render_field()
     {
-        // TODO: Implement render_field() method.
+        ?>
+
+            <?php $this->do_before_decorators(); ?>
+
+            <textarea <?php $this->do_attrs(array('value')); ?> > <?php $this->do_attr('value'); ?> </textarea>
+
+            <?php $this->do_after_decorators(); ?>
+
+        <?php
     }
 
     public function get_field_type()
     {
-        // TODO: Implement get_field_type() method.
+        return self::FIELD_NAME;
     }
 }

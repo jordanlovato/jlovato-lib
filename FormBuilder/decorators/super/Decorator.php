@@ -26,7 +26,7 @@ class Decorator implements IDecorator {
     public function set_decorator_params(array $new_params)
     {
         if (isset($new_params['html']) && !empty($new_params['html']))
-            $html = $new_params['html'];
+            $this->html = $new_params['html'];
 
         $this->decorator_params = $new_params;
     }
@@ -44,11 +44,22 @@ class Decorator implements IDecorator {
 
     public function remove_decorator($field_keys)
     {
+        $param_string = "";
+        foreach ($this->decorator_params as $param_key => $param_value) {
+            $param_string .= "$param_key=$param_value&";
+        }
+        $param_string = substr($param_string, 0, -1);
+
         foreach ($this->field_keys as $i => $field_key) {
             if (in_array($field_key, $field_keys)) {
                 unset($this->field_keys[$i]);
                 $field = FieldList::get_field_by_field_key($field_key);
                 $field->remove_decorator($this);
+            } else {
+                throw new InvalidArgumentException(
+                    "Field Keys: " . substr(implode(", ", $field_keys), 0, -2) .
+                        " Do not contain decorator with params: " . $param_string
+                );
             }
         }
     }

@@ -6,13 +6,15 @@ interface IField {
 
     public function render_field();
 
+    public function remove_attr(IAttr $attr);
+
     public function update_attr(IAttr $attr);
 
     public function get_attr($attr);
 
     public function get_attrs();
 
-    public function add_decorator(IDecorator $dec);
+    public function assign_decorator(IDecorator $dec);
 
     public function set_decorators(array $dec_list);
 

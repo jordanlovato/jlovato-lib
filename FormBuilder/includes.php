@@ -11,14 +11,14 @@ spl_autoload_register('include_supers');
 spl_autoload_register('include_concretes');
 
 function include_supers() {
-    $components = array('attrs', 'decorators', 'fields', 'parse');
+    $components = array('attrs', 'decorators', 'fields', 'parse', 'views');
     foreach ($components as $component) {
         $path = ROOT_PATH . $component . DIRECTORY_SEPARATOR . 'super';
         if (is_dir($path)) {
             if ($handle = opendir($path)) {
                 while (false !== ($entry = readdir($handle))) {
                     if ($entry != "." && $entry != "..") {
-                        require_once($entry);
+                        require_once($path . DIRECTORY_SEPARATOR .$entry);
                     }
                 }
                 closedir($handle);
@@ -28,14 +28,14 @@ function include_supers() {
 }
 
 function include_concretes() {
-    $components = array('attrs', 'decorators', 'fields', 'parse');
+    $components = array('attrs', 'decorators', 'fields', 'parse', 'views');
     foreach ($components as $component) {
         $path = ROOT_PATH . $component;
         if (is_dir($path)) {
             if ($handle = opendir($path)) {
                 while (false !== ($entry = readdir($handle))) {
                     if ($entry != "." && $entry != "..") {
-                        require_once($entry);
+                        require_once($path . DIRECTORY_SEPARATOR .$entry);
                     }
                 }
                 closedir($handle);
