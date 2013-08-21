@@ -15,13 +15,11 @@ function include_supers() {
     foreach ($components as $component) {
         $path = ROOT_PATH . $component . DIRECTORY_SEPARATOR . 'super';
         if (is_dir($path)) {
-            if ($handle = opendir($path)) {
-                while (false !== ($entry = readdir($handle))) {
-                    if ($entry != "." && $entry != "..") {
-                        require_once($path . DIRECTORY_SEPARATOR .$entry);
-                    }
+            $files = scandir($path);
+            foreach ($files as $entry) {
+                if ($entry != "." && $entry != "..") {
+                    require_once($path . DIRECTORY_SEPARATOR .$entry);
                 }
-                closedir($handle);
             }
         }
     }
@@ -32,13 +30,11 @@ function include_concretes() {
     foreach ($components as $component) {
         $path = ROOT_PATH . $component;
         if (is_dir($path)) {
-            if ($handle = opendir($path)) {
-                while (false !== ($entry = readdir($handle))) {
-                    if ($entry != "." && $entry != "..") {
-                        require_once($path . DIRECTORY_SEPARATOR .$entry);
-                    }
+            $files = scandir($path);
+            foreach ($files as $entry) {
+                if ($entry != "." && $entry != ".." && $entry != "super") {
+                    require_once($path . DIRECTORY_SEPARATOR .$entry);
                 }
-                closedir($handle);
             }
         }
     }

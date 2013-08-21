@@ -16,6 +16,8 @@ class Attr implements IAttr {
 
         if (empty($name)) {
             $this->attr_name = stristr(get_class($this), 'Attr', true);
+        } else {
+            $this->attr_name = $name;
         }
     }
 

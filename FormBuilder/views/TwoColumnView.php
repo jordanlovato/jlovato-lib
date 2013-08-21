@@ -1,7 +1,5 @@
 <?php
 
-require_once "IView.php";
-
 class TwoColumnView implements IView {
 
     private $left_fields = array();

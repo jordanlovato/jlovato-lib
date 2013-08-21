@@ -4,6 +4,10 @@ class TextareaField extends Field
 {
     const FIELD_NAME = 'textarea';
 
+    public function __construct($field_key, $init_attrs = array()) {
+        parent::__construct($field_key, $init_attrs);
+    }
+
     public function render_field()
     {
         ?>

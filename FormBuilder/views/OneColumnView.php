@@ -1,7 +1,4 @@
 <?php
-/**
- * Created by Jordan Lovato.
- */
 
 class OneColumnView implements IView {
 

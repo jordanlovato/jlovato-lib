@@ -42,7 +42,7 @@ final class FieldFactory implements Singleton {
      * @param $field_key
      * @param $field_type
      * @param array $init_attrs
-     * @return TextareaField|TextField
+     * @return mixed
      *
      * Instantiate a new Field Obj
      */

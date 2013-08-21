@@ -51,7 +51,7 @@ class FormBuilderParseXML extends FormBuilderParse implements Singleton {
             $attrs = $field_xml->attributes();
 
             // Make the Field
-            $field_key = (isset($attrs['key'])) ? $attrs['key'] : "";
+            $field_key = (isset($attrs['key'])) ? strval($attrs['key']) : "";
             $field = FieldFactory::build_new_field(strval($attrs['type']), array(), $field_key);
             $field_key = $field->get_field_key();
 
@@ -84,6 +84,7 @@ class FormBuilderParseXML extends FormBuilderParse implements Singleton {
                 }
             }
 
+            // Update the field again
             FieldList::update_field($field);
         }
     }

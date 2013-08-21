@@ -22,12 +22,26 @@ abstract class Field implements IField {
 
         // Create a default Name, Class, and ID attrs
         $default_attrs = array(
-            new ClassAttr(array('fb-field', $this->get_field_type()), 'class'),
-            new Attr('fb-field_' . self::$field_count, 'id'),
-            new Attr($this->get_field_key(), 'name'),
+            'class' => new ClassAttr($this->get_field_key(), array('fb-field', $this->get_field_type())),
+            'id' => new Attr($this->get_field_key(), 'fb-field_' . self::$field_count, 'id'),
+            'name' => new Attr($this->get_field_key(), $this->get_field_key(), 'name'),
         );
 
-        $init_attrs = array_merge($init_attrs, $default_attrs);
+        $has_name = $has_id = $has_class = false;
+
+        foreach ($init_attrs as $attr) {
+            if (is_a($attr, 'ClassAttr')) {
+                $has_class = true;
+            } else if ($attr->get_attr_name() == "name") {
+                $has_name = true;
+            } else if ($attr->get_attr_name() == "id") {
+                $has_id = true;
+            }
+        }
+
+        if (!$has_class) $init_attrs[] = $default_attrs['class'];
+        if (!$has_name) $init_attrs[] = $default_attrs['name'];
+        if (!$has_id) $init_attrs[] = $default_attrs['id'];
 
         foreach ($init_attrs as $IAttr) {
             $this->update_attr($IAttr);
@@ -169,9 +183,15 @@ abstract class Field implements IField {
 
     public function do_label()
     {
-        $label = $this->get_decorators();
+        $decs = $this->get_decorators();
 
-        $label->do_attr();
+        foreach ($decs as $dec) {
+            if (is_a($dec, 'LabelDecorator'))
+            {
+                $label = $dec;
+                $label->do_attr();
+            }
+        }
     }
 
     public function get_field_key() {

@@ -20,7 +20,9 @@ class FormBuilder {
     public function __construct(IView $view, Array $field_list = array(), $form_args = array())
     {
         $this->current_view = $view;
-        FieldList::swap_field_list($field_list);
+
+        if (!empty($field_list))
+            FieldList::swap_field_list($field_list);
 
         if (isset($form_args['method']))
         {
@@ -196,8 +198,8 @@ class FormBuilder {
     public static function define_xml_skeleton($xml_file)
     {
         if (file_exists($xml_file)) {
-            $parser = new FormBuilderParseXML($xml_file);
-            $field_list = $parser->get_field_list();
+            FormBuilderParseXML::load_file($xml_file);
+            $field_list = FormBuilderParseXML::get_field_list();
             return $field_list;
         }
     }

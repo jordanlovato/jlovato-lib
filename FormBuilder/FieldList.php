@@ -77,9 +77,10 @@ final class FieldList implements Iterator, Singleton {
         self::refresh_dependencies();
     }
 
-    private static function unregister_dependency($dependant_obj_key)
+    private static function unregister_dependency(IJsDependency $dependant_obj)
     {
-        if (isset(self::$dependants[$dependant_obj_key])) {
+        $dependant_obj_key = $dependant_obj->get_dependency_object_keyword();
+        if (in_array($dependant_obj_key, self::$dependants)) {
             unset(self::$dependants[$dependant_obj_key]);
             self::refresh_dependencies();
         } else {
@@ -232,12 +233,14 @@ final class FieldList implements Iterator, Singleton {
      */
     public static function update_field_by_index(IField $new_field, $index, $preserve_meta = false)
     {
-        if (isset(self::$fields[$index])) {
-            $field = self::get_field_by_index($index);
+        if (isset(self::$fields[$index]))
+        {
+            $field = self::$fields[$index]['object'];
             $attrs = $field->get_attrs();
             $decs = $field->get_decorators();
 
-            if ($preserve_meta) {
+            if ($preserve_meta)
+            {
                 foreach ($attrs as $attr) {
                     $new_field->update_attr($attr);
                 }
@@ -245,8 +248,9 @@ final class FieldList implements Iterator, Singleton {
                 foreach ($decs as $dec) {
                     $dec->assign_decorator( array($field->get_field_key()) );
                 }
-
-            } else if (is_a($field, 'IJsDependency')) {
+            }
+            else if (is_a($field, 'IJsDependency'))
+            {
                 foreach ($attrs as $attr) {
                     self::unregister_dependency($attr);
                 }
@@ -265,7 +269,10 @@ final class FieldList implements Iterator, Singleton {
             self::register_dependency($new_field);
         }
 
-        self::$fields[$index] = $new_field;
+        $old_index = self::$field_index;
+        self::$field_index = $index;
+        self::add_field($new_field);
+        self::$field_index = $old_index;
     }
 
     /**
@@ -277,59 +284,47 @@ final class FieldList implements Iterator, Singleton {
      */
     public static function update_field(IField $new_field, $preserve_meta = false)
     {
-        if (property_exists(get_class($new_field), 'field_key')) {
-            $query_field_key = $new_field->get_field_key();
-            $FieldList = self::get_instance();
+        $query_field_key = $new_field->get_field_key();
 
-            if (isset($input)) {
-                $FieldList = $input;
-            }
-
+        if (count(FieldList::get_all_fields()) == 0) {
+            self::add_field($new_field);
+        } else {
             // If this field is already in the FieldList, it should have the same $field_key
-            foreach ($FieldList as $field_key => $field_vars) {
+            foreach (FieldList::get_instance() as $field_key => $field_vars) {
                 if ($query_field_key == $field_key) {
-                    if ($preserve_meta) {
-                        $attrs = self::$fields[self::get_cached_index()]->get_attrs();
-                        $decs = self::$fields[self::get_cached_index()]->get_decorators();
-
-                        foreach ($attrs as $attr) {
-                            $new_field->update_attr($attr);
-                        }
-
-                        foreach ($decs as $dec) {
-                            $dec->assign_decorator(array($field_key));
-                        }
-                    }
-
-                    self::unregister_dependency(self::$fields[self::get_cached_index()]);
-                    unset(self::$fields[self::get_cached_index()]);
+                    $index = self::get_cached_index();
+                    self::update_field_by_index($new_field, $index, $preserve_meta);
+                } else {
+                    self::add_field($new_field);
                 }
             }
-
-            self::add_field($new_field, !$preserve_meta);
-        } else {
-            throw new BadMethodCallException("Call to FieldList::update_field() on
-                class ".get_class($new_field)." that has no field_key.");
         }
     }
 
     /**
      * @param IField $field
+     * @param int $index
      * @param Bool $register_meta
      *
      * Add a field to the FieldList Obj
      */
-    private static function add_field(IField $field, $register_meta = true)
+    private static function add_field(IField $field, $index = -1, $register_meta = true)
     {
-        self::$fields[self::$field_index]['object'] = $field;
+        if ($index == -1) $index = self::$field_index;
+
+        self::$fields[$index]['object'] = $field;
 
         if (is_a($field, 'IJsDependency')) {
             self::register_dependency($field);
         }
 
+        if (!isset(self::$fields[$index]['attrs']))
+            self::$fields[$index]['attrs'] = array();
+
         foreach ($field->get_attrs() as $attr) {
             if (is_a($attr, 'IAttr')) {
-                self::$fields[self::$field_index][$attr->get_attr_name()] = $attr->get_attr_value();
+                self::$fields[$index]['attrs'][] = $attr;
+                self::$fields[$index][$attr->get_attr_name()] = $attr->get_attr_value();
 
                 if (is_a($attr, 'IJsDependency') && $register_meta) {
                     self::register_dependency($attr);
@@ -337,9 +332,12 @@ final class FieldList implements Iterator, Singleton {
             }
         }
 
+        if (!isset(self::$fields[$index]['decorators']))
+            self::$fields[$index]['decorators'] = array();
+
         foreach ($field->get_decorators() as $dec) {
             if (is_a($dec, 'IDecorator')) {
-                self::$fields[self::$field_index][get_class($dec)] = $dec;
+                self::$fields[$index]['decorators'][] = $dec;
 
                 if (is_a($dec, 'IJsDependency') && $register_meta) {
                     self::register_dependency($dec);
@@ -347,7 +345,7 @@ final class FieldList implements Iterator, Singleton {
             }
         }
 
-        self::$field_index++;
+        if ($index == -1) self::$field_index++;
     }
 
     /**
@@ -506,7 +504,7 @@ final class FieldList implements Iterator, Singleton {
      *
      * get the last cached index, used when iterating the FieldList object
      */
-    private static function get_cached_index()
+    public static function get_cached_index()
     {
         return self::$cached_field_index;
     }
@@ -541,9 +539,14 @@ final class FieldList implements Iterator, Singleton {
      */
     public function key()
     {
-        $field = self::$fields[self::$field_index];
-        self::$cached_field_index = self::$field_index;
-        return $field->field_key;
+        if (isset(self::$fields[self::$field_index])) {
+            $field = self::get_field_by_index(self::$field_index);
+
+            self::$cached_field_index = self::$field_index;
+            return $field->get_field_key();
+        } else {
+            return null;
+        }
     }
 
     /**

@@ -10,7 +10,4 @@ abstract class FormBuilderParse {
     {
         self::$file_handle = $file_handle;
     }
-
-    abstract static function get_field_list();
-
 }
